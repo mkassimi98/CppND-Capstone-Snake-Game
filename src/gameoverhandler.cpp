@@ -1,10 +1,26 @@
 #include "gameoverhandler.h"
 #include <string>
 
+/**
+ * @brief Constructs a new GameOverHandler object.
+ */
 GameOverHandler::GameOverHandler() {}
 
+/**
+ * @brief Destroys the GameOverHandler object.
+ */
 GameOverHandler::~GameOverHandler() {}
 
+/**
+ * @brief Displays a message box with the game over message and options to continue or exit.
+ * 
+ * This function creates a message box displaying the player's final score and asking if they wish to play again.
+ * The message box has two buttons: "Yes" and "No".
+ * 
+ * @param score Constant reference to an integer holding the player's score.
+ * @return true If the player clicks "Yes".
+ * @return false If the player clicks "No" or if an error occurs in displaying the message box.
+ */
 bool GameOverHandler::ShowGameOverMessage(const int& score) const {
     const std::string message = "Game Over! Your score was: " + std::to_string(score) + "\nPlay again?";
     const SDL_MessageBoxButtonData buttons[] = {
