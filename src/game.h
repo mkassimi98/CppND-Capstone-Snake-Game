@@ -23,9 +23,9 @@ class Game {
   std::unique_ptr<GameOverHandler> gameOverHandler;
   SDL_Point food;
   std::random_device dev;
-  std::mt19937 engine;
   std::uniform_int_distribution<int> random_w;
   std::uniform_int_distribution<int> random_h;
+  std::mt19937 engine;
 
   int score{0};
 

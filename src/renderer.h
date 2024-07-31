@@ -19,15 +19,15 @@ class Renderer {
  private:
   void DrawFood(const SDL_Point &food);
   void DrawSnake(const Snake &snake);
-
-  std::unique_ptr<SDL_Window, void(*)(SDL_Window*)> sdl_window;
-  std::unique_ptr<SDL_Renderer, void(*)(SDL_Renderer*)> sdl_renderer;
-  std::unique_ptr<SDL_Texture, void(*)(SDL_Texture*)> background_texture;
-
+  
   const std::size_t screen_width;
   const std::size_t screen_height;
   const std::size_t grid_width;
   const std::size_t grid_height;
+
+  std::unique_ptr<SDL_Window, void(*)(SDL_Window*)> sdl_window;
+  std::unique_ptr<SDL_Renderer, void(*)(SDL_Renderer*)> sdl_renderer;
+  std::unique_ptr<SDL_Texture, void(*)(SDL_Texture*)> background_texture;
 };
 
 #endif

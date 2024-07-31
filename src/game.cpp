@@ -4,10 +4,10 @@
 
 Game::Game(std::size_t grid_width, std::size_t grid_height)
     : snake(grid_width, grid_height),
-      engine(dev()),
+      gameOverHandler(std::make_unique<GameOverHandler>()),
       random_w(0, static_cast<int>(grid_width - 1)),
-      random_h(0, static_cast<int>(grid_height - 1)),
-      gameOverHandler(std::make_unique<GameOverHandler>()) {  // Initialize the GameOverHandler
+      random_h(0, static_cast<int>(grid_height - 1)), 
+      engine(dev()) {
   PlaceFood();
 }
 
