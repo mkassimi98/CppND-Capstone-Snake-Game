@@ -7,6 +7,11 @@
 
 This repository hosts an enhanced version of the classic Snake Game, which was originally developed as a capstone project for the [Udacity C++ Nanodegree program](https://www.udacity.com/course/c-plus-plus-nanodegree--nd213). The modifications introduced aim to improve game performance, user experience, and code maintainability.
 
+<p align="center">
+  <img src="resources/snake_game_demo.gif"/>
+</p>
+
+
 # Key Features and Enhancements
 
 - **Improved Data Handling**: Transition from `std::vector` to `std::deque` for snake body management, optimizing the game's performance by facilitating quicker modifications to the snake's length.
@@ -14,12 +19,65 @@ This repository hosts an enhanced version of the classic Snake Game, which was o
 - **Memory Management**: Implementation of smart pointers (`std::unique_ptr`) across the project to ensure robust memory management and to prevent memory leaks.
 - **Interactive Game Dialogs**: Introduction of interactive dialogs that engage the player at the end of each game, offering options to replay or exit, which enhances user engagement.
 - **Visual Upgrades**: Addition of a static background to enrich the visual experience and give the game a more polished look.
+- **Concurrency Management**: Integration of multithreading for handling game over scenarios, which allows the game to remain responsive during interactive dialog display. A mutex (`std::mutex`) is used to protect shared game state modifications between the main game loop and the game over thread, ensuring safe and correct game state updates.
 
 
-<p align="center">
-  <img src="resources/snake_game_demo.gif"/>
-</p>
+# Loops, Functions, I/O - meet at least 2 criteria
 
+- Rubric Point 1/4: The project demonstrates an understanding of C++ functions and control structures.
+
+    - The Renderer class (renderer.cpp) demonstrates a clear organizational structure by dividing the rendering tasks into separate functions for rendering the snake and the food, each managed by a specific function (RenderFood and RenderSnake).
+
+- Rubiric 3/4: The project accepts user input and processes the input.
+
+    - Hass been added a new user input in class gameoverhandler.cpp. In this case add a dialout to choose beetwen still playing or not.
+
+- Rubric Point 4/4: The project uses data structures and immutable variables.
+
+    - The project uses std::deque to manage the snake's body. This choice is optimal for the snake game mechanics, as it allows for efficient additions and removals of elements from both ends of the deque.
+
+- Rubric 
+
+# Object Oriented Programming - meet at least 3 criteria
+
+- Rubric 1/6: One or more classes are added to the project with appropriate access specifiers for class members.
+
+    - The class GameOverHandler (gameoverhandler.cpp) has been added to the project.
+
+- Rubric 2/6: Class constructors utilize member initialization lists.
+
+    - All has been modify it to do it. An exmaple is file renderer.cpp (line 14) where has been added "background_texture" initialization.
+
+- Rubric 3/6: Classes abstract implementation details from their interfaces.
+
+    - In all classes has been added documentation. E.g.: snake.h
+
+# Memory Management - meet at least 3 criteria
+
+- Rubric 1/6: The project makes use of references in function declarations.
+
+    - Use of pass-by-reference examples in:
+        
+        - renderer.h -> Function "ShowGameOverMessage".
+        - renderer.h -> Functions "DrawFood" / "DrawSnake"
+
+- Rubric 2/6: The project uses destructors appropriately.
+
+    - Game class (game.cpp) use the destructor to performs cleanup by calling Cleanup.
+
+- Rubric 6/6: The project uses smart pointers instead of raw pointers.
+
+    - Has been added smart pointers in classes like game.h in line 66, renderer.h in lines 75-77.
+
+# Concurrency - meet at least 2 criteria
+
+- Rubric 1/4: The project uses multithreading.
+
+    - The project uses async tasks in the game class (game.h) in line 67. Also add the clearing of thread in the destructor.
+
+- Rubric 3/4: A mutex or lock is used in the project.
+
+    - It is implemented in game class, which utilizes mutex locking to safely update and check game state variables shared with the main thread.
 
 # Dependencies for Running Locally
 * **cmake >= 3.7**
@@ -40,6 +98,9 @@ This repository hosts an enhanced version of the classic Snake Game, which was o
   * Linux: `sudo apt-get install libsdl2-image-dev`
   * Mac: Use Homebrew `brew install sdl2_image`
   * Windows: Available through [SDL2_image development libraries](https://www.libsdl.org/projects/SDL_image/)
+* **Zenity >= 3.32**
+  * Linux: `sudo apt-get install zenity`
+
 
 # Basic Build Instructions
 
