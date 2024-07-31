@@ -4,6 +4,7 @@
 #include <vector>
 #include <memory>
 #include "SDL.h"
+#include "SDL_image.h"
 #include "snake.h"
 
 class Renderer {
@@ -21,6 +22,7 @@ class Renderer {
 
   std::unique_ptr<SDL_Window, void(*)(SDL_Window*)> sdl_window;
   std::unique_ptr<SDL_Renderer, void(*)(SDL_Renderer*)> sdl_renderer;
+  std::unique_ptr<SDL_Texture, void(*)(SDL_Texture*)> background_texture;
 
   const std::size_t screen_width;
   const std::size_t screen_height;

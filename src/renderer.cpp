@@ -10,7 +10,8 @@ Renderer::Renderer(const std::size_t screen_width,
       grid_width(grid_width),
       grid_height(grid_height),
       sdl_window(nullptr, SDL_DestroyWindow),
-      sdl_renderer(nullptr, SDL_DestroyRenderer) {
+      sdl_renderer(nullptr, SDL_DestroyRenderer),
+      background_texture(nullptr, SDL_DestroyTexture) {
   // Initialize SDL
   if (SDL_Init(SDL_INIT_VIDEO) < 0) {
     std::cerr << "SDL could not initialize.\n";
@@ -33,7 +34,16 @@ Renderer::Renderer(const std::size_t screen_width,
     std::cerr << "Renderer could not be created.\n";
     std::cerr << "SDL_Error: " << SDL_GetError() << "\n";
   }
+  // Load Background Image
+  SDL_Surface *background_surface = IMG_Load("../resources/background.jpg");
+  if (!background_surface) {
+    std::cerr << "Background image could not be loaded. IMG_Error: " << IMG_GetError() << "\n";
+    std::exit(EXIT_FAILURE);
+  }
+  background_texture.reset(SDL_CreateTextureFromSurface(sdl_renderer.get(), background_surface));
+  SDL_FreeSurface(background_surface);
 }
+
 
 Renderer::~Renderer() {
   SDL_Quit();
@@ -42,6 +52,7 @@ Renderer::~Renderer() {
 void Renderer::Render(Snake const snake, SDL_Point const &food) {
   SDL_SetRenderDrawColor(sdl_renderer.get(), 0x1E, 0x1E, 0x1E, 0xFF);
   SDL_RenderClear(sdl_renderer.get());
+  SDL_RenderCopy(sdl_renderer.get(), background_texture.get(), NULL, NULL);
   DrawFood(food);
   DrawSnake(snake);
   SDL_RenderPresent(sdl_renderer.get());
