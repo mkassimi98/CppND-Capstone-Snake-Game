@@ -11,9 +11,9 @@ class Snake {
   Snake(int grid_width, int grid_height);
 
   void Update();
-
   void GrowBody();
   bool SnakeCell(int x, int y);
+  void Reset();
 
   Direction direction = Direction::kUp;
 

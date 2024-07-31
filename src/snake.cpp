@@ -69,6 +69,17 @@ void Snake::UpdateBody(SDL_Point &current_head_cell, SDL_Point &prev_head_cell) 
   }
 }
 
+void Snake::Reset() {
+  head_x = grid_width / 2;
+  head_y = grid_height / 2;
+  body.clear();
+  size = 1;
+  alive = true;
+  growing = false;
+  speed = 0.2f;
+  direction = Direction::kUp;
+}
+
 void Snake::GrowBody() { growing = true; }
 
 // Inefficient method to check if cell is occupied by snake.

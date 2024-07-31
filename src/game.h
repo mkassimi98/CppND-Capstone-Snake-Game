@@ -7,6 +7,7 @@
 #include "controller.h"
 #include "renderer.h"
 #include "snake.h"
+#include "gameoverhandler.h"
 
 class Game {
  public:
@@ -19,6 +20,7 @@ class Game {
 
  private:
   Snake snake;
+  std::unique_ptr<GameOverHandler> gameOverHandler;
   SDL_Point food;
   std::random_device dev;
   std::mt19937 engine;
@@ -30,6 +32,7 @@ class Game {
   void PlaceFood();
   void Update();
   void Cleanup();
+  void ResetGame();
 };
 
 #endif

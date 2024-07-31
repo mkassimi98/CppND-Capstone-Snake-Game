@@ -6,7 +6,8 @@ Game::Game(std::size_t grid_width, std::size_t grid_height)
     : snake(grid_width, grid_height),
       engine(dev()),
       random_w(0, static_cast<int>(grid_width - 1)),
-      random_h(0, static_cast<int>(grid_height - 1)) {
+      random_h(0, static_cast<int>(grid_height - 1)),
+      gameOverHandler(std::make_unique<GameOverHandler>()) {  // Initialize the GameOverHandler
   PlaceFood();
 }
 
@@ -33,6 +34,7 @@ void Game::Run(std::unique_ptr<Controller> controller, std::unique_ptr<Renderer>
     // Input, Update, Render - the main game loop.
     controller->HandleInput(running, snake);
     Update();
+
     renderer->Render(snake, food);
 
     frame_end = SDL_GetTicks();
@@ -54,6 +56,13 @@ void Game::Run(std::unique_ptr<Controller> controller, std::unique_ptr<Renderer>
     // achieve the correct frame rate.
     if (frame_duration < target_frame_duration) {
       SDL_Delay(target_frame_duration - frame_duration);
+    }
+        if (!snake.alive) {  // Check if the snake is alive
+        if (!gameOverHandler->ShowGameOverMessage(score)) {
+            running = false;  // Stop running if the player doesn't want to restart
+        } else {
+            ResetGame();  // Reset game state for a new game
+        }
     }
   }
 }
@@ -89,6 +98,13 @@ void Game::Update() {
     snake.GrowBody();
     snake.speed += 0.02;
   }
+}
+
+void Game::ResetGame() {
+    // Reset all game-related states, such as the snake's position, the score, etc.
+    snake.Reset();
+    score = 0;
+    PlaceFood();
 }
 
 int Game::GetScore() const { return score; }
