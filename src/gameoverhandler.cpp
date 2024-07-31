@@ -38,7 +38,7 @@ bool GameOverHandler::ShowGameOverMessage(const int& score) const {
     };
     int buttonid;
     if (SDL_ShowMessageBox(&messageboxdata, &buttonid) < 0) {
-        SDL_Log("error displaying message box");
+        SDL_Log("SDL_ShowMessageBox failed: %s", SDL_GetError());
         return false;
     }
     return buttonid == 1;  // Return true if 'Yes' was clicked

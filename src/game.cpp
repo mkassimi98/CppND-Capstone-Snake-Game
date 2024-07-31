@@ -13,19 +13,23 @@ Game::Game(std::size_t grid_width, std::size_t grid_height)
       gameOverHandler(std::make_unique<GameOverHandler>()),
       random_w(0, static_cast<int>(grid_width - 1)),
       random_h(0, static_cast<int>(grid_height - 1)), 
-      engine(dev()) {
+      engine(dev()),
+      running(true) {
   PlaceFood();
 }
 
 /**
- * @brief Destroys the Game object and performs cleanup by calling Cleanup.
+ * @brief Destroys the Game object and performs cleanup by ensuring all threads are joined and calling Cleanup.
  */
 Game::~Game() {
+  if (gameOverThread.joinable())
+    gameOverThread.join();
+  
   Cleanup();
 }
 
 /**
- * @brief Cleans up the SDL resources before application shutdown.
+ * @brief Cleans up the SDL resources before application shutdown, called by the destructor.
  */
 void Game::Cleanup() {
   SDL_Quit();
@@ -33,6 +37,9 @@ void Game::Cleanup() {
 
 /**
  * @brief Runs the main game loop which includes handling input, updating game state, and rendering.
+ * 
+ * Manages frame timing, input processing, game updates, and rendering within a controlled loop. Handles thread creation
+ * for game over processing to ensure responsive UI even when ending game conditions are met.
  * 
  * @param controller Unique pointer to the controller managing user input.
  * @param renderer Unique pointer to the renderer for displaying the game.
@@ -45,7 +52,6 @@ void Game::Run(std::unique_ptr<Controller> controller, std::unique_ptr<Renderer>
   Uint32 frame_end;
   Uint32 frame_duration;
   int frame_count = 0;
-  bool running = true;
 
   while (running) {
     frame_start = SDL_GetTicks();
@@ -71,13 +77,12 @@ void Game::Run(std::unique_ptr<Controller> controller, std::unique_ptr<Renderer>
       SDL_Delay(target_frame_duration - frame_duration);
     }
 
-    // Check if the snake is alive, show game over message or reset game.
-    if (!snake.alive) {
-        if (!gameOverHandler->ShowGameOverMessage(score)) {
-            running = false;
-        } else {
-            ResetGame();
-        }
+    // Check if the snake is alive and a game over thread is not already running.
+    if (!snake.alive && !gameOverThread.joinable()) {
+      gameOverThread = std::thread(&Game::HandleGameOver, this);
+    }
+    if (gameOverThread.joinable()) {
+      gameOverThread.join();
     }
   }
 }
@@ -118,12 +123,25 @@ void Game::Update() {
 }
 
 /**
- * @brief Resets the game to its initial state for a new game.
+ * @brief Resets the game to its initial state for a new game, resetting score, snake size, and food placement.
  */
 void Game::ResetGame() {
     snake.Reset();
     score = 0;
     PlaceFood();
+}
+
+/**
+ * @brief Handles the game over logic in a separate thread to ensure the main game loop remains responsive.
+ * Utilizes mutex locking to safely update and check game state variables shared with the main thread.
+ */
+void Game::HandleGameOver() {
+  std::lock_guard<std::mutex> lock(mtx);
+  if (gameOverHandler->ShowGameOverMessage(score)) {
+    ResetGame();
+  } else {
+    running = false;
+  }
 }
 
 /**
