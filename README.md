@@ -73,11 +73,17 @@ This repository hosts an enhanced version of the classic Snake Game, which was o
 
 - Rubric 1/4: The project uses multithreading.
 
-    - The project uses async tasks in the game class (game.h) in line 67. Also add the clearing of thread in the destructor.
+    - The Game class in game.h and game.cpp utilizes multithreading. Specifically, a separate threads are created for handling game over logic asynchronously and the thread of the snake. Those threads are started in the Run method and properly joined in the destructor to ensure clean termination.
 
 - Rubric 3/4: A mutex or lock is used in the project.
 
     - It is implemented in game class, which utilizes mutex locking to safely update and check game state variables shared with the main thread.
+    - In snake.h and snake.cpp, a std::mutex (snake_mutex) is used to synchronize access to the snake's state, ensuring thread safety when updating the snake's growth state (GrowBody method). This prevents race conditions when multiple threads might access or modify the snake's attributes simultaneously.
+
+- Rubric 4/4: A condition variable is used in the project.
+
+    - The Game class uses a std::condition_variable to coordinate the execution of the snake update thread. This thread periodically checks if the game is still running and updates the snake's position accordingly. The condition variable is used to pause the thread execution until notified, ensuring it can exit cleanly when the game is reset or terminated. This helps in managing thread execution more effectively and prevents unnecessary CPU usage when the game is paused or stopped.
+
 
 # Dependencies for Running Locally
 * **cmake >= 3.7**
