@@ -6,6 +6,7 @@
 #include <thread>
 #include <mutex>
 #include <chrono>
+#include <condition_variable>
 #include "SDL.h"
 #include "controller.h"
 #include "renderer.h"
@@ -77,6 +78,8 @@ private:
   std::uniform_int_distribution<int> random_w; ///< Distribution for randomizing food's horizontal position.
   std::uniform_int_distribution<int> random_h; ///< Distribution for randomizing food's vertical position.
   std::mt19937 engine; ///< Random number generator.
+  std::condition_variable cv; ///< Condition variable for synchronizing the snake update thread.
+
 
   std::unique_ptr<std::thread> snakeThread; ///< Thread for continuously updating the game state.
 

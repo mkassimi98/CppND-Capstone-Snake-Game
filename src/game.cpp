@@ -1,5 +1,7 @@
 #include "game.h"
 #include <iostream>
+#include <chrono>
+#include <thread>
 #include "SDL.h"
 
 /**
@@ -28,11 +30,18 @@ Game::Game(std::size_t grid_width, std::size_t grid_height)
  * Ensures that all resources are properly released and all threads are terminated safely before the game object is destroyed.
  */
 Game::~Game() {
-  if (gameOverThread.joinable())
-    gameOverThread.join();
-  
+  {
+    std::lock_guard<std::mutex> lock(mtx);
+    running = false;
+    cv.notify_all(); // Notify the thread to stop waiting and exit
+  }
+
   if (snakeThread && snakeThread->joinable()) {
-      snakeThread->join();
+    snakeThread->join();
+  }
+
+  if (gameOverThread.joinable()) {
+    gameOverThread.join();
   }
 
   Cleanup();
@@ -114,8 +123,12 @@ void Game::PlaceFood() {
  * initialized for a new game session.
  */
 void Game::ResetGame() {
+    {
+      running = false;
+      cv.notify_all(); // Notify the thread to stop waiting and exit
+    }
+
     if (snakeThread && snakeThread->joinable()) {
-        running = false;
         snakeThread->join();
     }
 
@@ -163,27 +176,27 @@ int Game::GetSize() const { return snake.size; }
  * based on the time elapsed since the last update.
  */
 void Game::ThreadedUpdate() {
-    auto lastUpdateTime = std::chrono::steady_clock::now();
+  auto lastUpdateTime = std::chrono::steady_clock::now();
 
-    while (running && snake.alive) {
-        auto currentTime = std::chrono::steady_clock::now();
-        float elapsed_time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - lastUpdateTime).count();
-        lastUpdateTime = currentTime;
+  while (running && snake.alive) {
+      std::unique_lock<std::mutex> lock(mtx);
+      cv.wait_for(lock, std::chrono::milliseconds(10), [this]() { return !running || !snake.alive; });
+      
+      if (!running || !snake.alive) break;
 
-        {
-            std::lock_guard<std::mutex> lock(snake.snake_mutex);
-            snake.Update(elapsed_time);
-        }
+      auto currentTime = std::chrono::steady_clock::now();
+      float elapsed_time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - lastUpdateTime).count();
+      lastUpdateTime = currentTime;
 
-        int new_x = static_cast<int>(snake.head_x);
-        int new_y = static_cast<int>(snake.head_y);
-        if (food.x == new_x && food.y == new_y) {
-            score++;
-            PlaceFood();
-            snake.GrowBody();
-            snake.IncreaseSpeed();
-        }
+      snake.Update(elapsed_time);
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+      int new_x = static_cast<int>(snake.head_x);
+      int new_y = static_cast<int>(snake.head_y);
+      if (food.x == new_x && food.y == new_y) {
+          score++;
+          PlaceFood();
+          snake.GrowBody();
+          snake.IncreaseSpeed();
+      }
     }
 }
