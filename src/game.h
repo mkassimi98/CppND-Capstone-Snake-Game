@@ -5,6 +5,7 @@
 #include <memory>
 #include <thread>
 #include <mutex>
+#include <chrono>
 #include "SDL.h"
 #include "controller.h"
 #include "renderer.h"
@@ -12,17 +13,20 @@
 #include "gameoverhandler.h"
 
 /**
- * @brief Game class handles the main game loop, interactions, and state management for a snake game.
+ * @brief Manages the main game loop, interactions, and state management for a snake game.
  * 
- * This class manages the game's main components such as the snake, food, and game over conditions.
- * It uses unique pointers for handling controllers and renderers, emphasizing ownership and lifecycle management.
- * Additionally, it manages a separate thread for handling game over scenarios, allowing for asynchronous
- * decision-making without interrupting the main game loop. Thread safety is ensured using a mutex.
+ * This class is responsible for orchestrating the core components of the game such as the snake mechanics, 
+ * food generation, and handling game over scenarios. It employs unique pointers for resource management of controllers,
+ * renderers, and game over handlers to ensure proper cleanup. The game leverages multithreading to manage game state updates
+ * and game over logic independently, enhancing responsiveness and performance.
  */
 class Game {
- public:
+public:
   /**
-   * @brief Construct a new Game object with specified grid dimensions.
+   * @brief Constructs a new Game object with specified grid dimensions.
+   * 
+   * This initializes all game components, sets the game state, and starts the thread responsible for updating
+   * the snake's movement and game logic continuously.
    * 
    * @param grid_width Width of the game grid.
    * @param grid_height Height of the game grid.
@@ -30,82 +34,79 @@ class Game {
   Game(std::size_t grid_width, std::size_t grid_height);
 
   /**
-   * @brief Destroy the Game object and perform any necessary cleanup, ensuring that all threads are properly joined.
+   * @brief Destroys the Game object and ensures all resources are properly released and all threads are terminated.
+   * 
+   * This includes joining the game over and snake update threads to prevent any potential resource leakage.
    */
   ~Game();
 
   /**
-   * @brief Runs the game loop, handling updates and rendering at a controlled frame rate.
+   * @brief Runs the main game loop which includes handling user input, updating the game state, and rendering graphics.
    * 
-   * This method also checks for the game over condition and may initiate a separate thread to handle
-   * game over logic.
+   * The loop continues to execute until an exit condition is met, and it ensures the game updates and renders 
+   * are performed at a consistent and controlled frame rate.
    * 
-   * @param controller Unique pointer to a Controller object for handling user input.
-   * @param renderer Unique pointer to a Renderer object for drawing the game state.
-   * @param target_frame_duration Target duration of each frame in milliseconds to control game speed.
+   * @param controller Unique pointer to the Controller object managing user input.
+   * @param renderer Unique pointer to the Renderer object for displaying the game state.
+   * @param target_frame_duration Duration of each frame in milliseconds to maintain a stable frame rate.
    */
   void Run(std::unique_ptr<Controller> controller, std::unique_ptr<Renderer> renderer,
            std::size_t target_frame_duration);
 
   /**
-   * @brief Get the current score of the game.
+   * @brief Retrieves the current score of the game.
    * 
-   * @return int Current score.
+   * @return int Current score based on the number of foods consumed by the snake.
    */
   int GetScore() const;
 
   /**
-   * @brief Get the size of the snake in the game.
+   * @brief Retrieves the current size of the snake, measured in the number of segments.
    * 
    * @return int Number of segments in the snake.
    */
   int GetSize() const;
 
- private:
-  Snake snake;
-  std::unique_ptr<GameOverHandler> gameOverHandler;
-  std::thread gameOverThread;  ///< Thread used for handling game over conditions asynchronously.
-  std::mutex mtx;  ///< Mutex for protecting shared resources across threads.
-  SDL_Point food;
-  std::random_device dev;
-  std::uniform_int_distribution<int> random_w;
-  std::uniform_int_distribution<int> random_h;
-  std::mt19937 engine;
+private:
+  Snake snake; ///< Handles the behavior and state of the snake.
+  std::unique_ptr<GameOverHandler> gameOverHandler; ///< Manages game over scenarios.
+  std::thread gameOverThread; ///< Thread for processing game over logic asynchronously.
+  std::mutex mtx; ///< Mutex for synchronizing access to shared resources.
+  SDL_Point food; ///< Current position of the food on the grid.
+  std::random_device dev; ///< Device used to generate seeds for the random number generator.
+  std::uniform_int_distribution<int> random_w; ///< Distribution for randomizing food's horizontal position.
+  std::uniform_int_distribution<int> random_h; ///< Distribution for randomizing food's vertical position.
+  std::mt19937 engine; ///< Random number generator.
 
-  bool running{true};  ///< Flag to control the running state of the game loop.
+  std::unique_ptr<std::thread> snakeThread; ///< Thread for continuously updating the game state.
 
-  int score{0};
+  bool running{true}; ///< Indicates whether the game loop is active.
+
+  int score{0}; ///< Tracks the number of points scored by the player.
+
+  void ThreadedUpdate(); ///< Updates the game state in a dedicated thread.
 
   /**
-   * @brief Places food on a random location within the game grid.
+   * @brief Randomly places food on the grid where it is not occupied by the snake.
    */
   void PlaceFood();
 
   /**
-   * @brief Updates the state of the game for each frame.
-   * 
-   * Includes moving the snake, checking for food consumption, and managing collisions.
-   */
-  void Update();
-
-  /**
-   * @brief Performs cleanup tasks, generally used before game shutdown.
-   * 
-   * Ensures all SDL resources are properly released.
+   * @brief Cleans up game resources upon shutdown, ensuring a clean exit.
    */
   void Cleanup();
 
   /**
-   * @brief Resets the game to its initial state.
+   * @brief Resets the game to its initial state for a new session.
    * 
-   * Used after a game over when starting a new game.
+   * This is typically invoked after a game over to restart the game with initial settings.
    */
   void ResetGame();
 
   /**
-   * @brief Handles the game over logic in a separate thread.
+   * @brief Manages the game over process in a separate thread to avoid blocking the main game loop.
    * 
-   * Displays a game over message and prompts the user to play again or exit. This method is protected by a mutex.
+   * It securely checks game state and handles user decisions to either restart or exit.
    */
   void HandleGameOver();
 };

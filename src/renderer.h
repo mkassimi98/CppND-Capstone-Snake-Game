@@ -39,13 +39,17 @@ class Renderer {
   /**
    * @brief Render the snake and food on the game window.
    * 
+   * This function clears the screen, draws the snake and food, and then presents the updated frame.
+   * 
    * @param snake Constant reference to the Snake object to be rendered.
    * @param food Constant reference to the SDL_Point where food is located.
    */
-  void Render(Snake const snake, SDL_Point const &food);
+  void Render(const Snake& snake, SDL_Point const &food);
 
   /**
    * @brief Updates the game window title with the current score and frames per second.
+   * 
+   * Sets the window title to display the current score and frame rate, which helps in monitoring game performance.
    * 
    * @param score Current score in the game.
    * @param fps Frames per second currently being rendered.
@@ -56,6 +60,8 @@ class Renderer {
   /**
    * @brief Draw food on the game grid.
    * 
+   * Renders the food as a texture on the game grid at the specified location.
+   * 
    * @param food Constant reference to the SDL_Point where food is located.
    */
   void DrawFood(const SDL_Point &food);
@@ -63,10 +69,12 @@ class Renderer {
   /**
    * @brief Draw the snake on the game grid.
    * 
+   * Renders the snake's body and head as textures on the game grid according to its current position.
+   * 
    * @param snake Constant reference to the Snake object to be rendered.
    */
   void DrawSnake(const Snake &snake);
-  
+
   const std::size_t screen_width;   ///< Width of the screen.
   const std::size_t screen_height;  ///< Height of the screen.
   const std::size_t grid_width;     ///< Width of the game grid.
@@ -77,4 +85,4 @@ class Renderer {
   std::unique_ptr<SDL_Texture, void(*)(SDL_Texture*)> background_texture; ///< Smart pointer for managing a texture used as the background.
 };
 
-#endif
+#endif // RENDERER_H
